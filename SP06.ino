@@ -1,66 +1,55 @@
-#include <SimpleFOC.h>
-HallSensor sensor = HallSensor(22, 42, 40, 11); // pole pairs 
-BLDCMotor motor = BLDCMotor(11); // pole pairs 
-BLDCDriver6PWM driver = BLDCDriver6PWM(59, 61, 63, 65, 67, 68);
+#define PIN_DC_VOLTAGE PC_3C
+#define PIN_THERMISTOR PB_15 // external thermistor
+#define PIN_CURRENT PA_0
+#define PIN_PACK_TEMP PA_6 // mosfet thermistor 
 
-// commander interface
-Commander command = Commander(Serial);
-void onMotor(char* cmd){ command.motor(&motor, cmd); }
-void doTarget(char* cmd) { command.scalar(&motor.target, cmd); }
+#define PIN_U_PHASE PA_4
+#define PIN_V_PHASE PC_3
+#define PIN_W_PHASE PC_2
+
+#define PIN_U_NEG_PHASE PA_0C 
+#define PIN_V_NEG_PHASE PA_1C
+#define PIN_W_NEG_PHASE PC_2C
+
+#define GATE_6 PA_8
+#define GATE_5 PC_6
+#define GATE_4 PC_7
+#define GATE_3 PG_7
+#define GATE_2 PJ_11
+#define GATE_1 PH_6
 
 void setup() {
-
-  sensor.init();
-  motor.linkSensor(&sensor);
-
-  driver.pwm_frequency = 20000; 
-  driver.voltage_power_supply = 24;
-  driver.voltage_limit = 24; 
-  driver.init();
-  motor.linkDriver(&driver);
-
-  // set control loop type to be used
-  motor.controller = MotionControlType::torque;
-  motor.torque_controller = TorqueControlType::foc_current;
-  motor.foc_modulation = FOCModulationType::SpaceVectorPWM;
-
-  // Q axis
-  // PID parameters - default 
-  motor.PID_current_q.P = 5;   
-  motor.PID_current_q.I = 1000;  
-  motor.PID_current_q.D = 0;
-  motor.PID_current_q.limit = motor.voltage_limit; 
-  motor.PID_current_q.ramp = 1e6;  
-  // Low pass filtering - default 
-  motor.LPF_current_q.Tf= 0.005; 
-  
-  // D axis
-  // PID parameters - default 
-  motor.PID_current_d.P = 5;    
-  motor.PID_current_d.I = 1000;
-  motor.PID_current_d.D = 0;
-  motor.PID_current_d.limit = motor.voltage_limit; 
-  motor.PID_current_d.ramp = 1e6;
-  // Low pass filtering - default 
-  motor.LPF_current_d.Tf= 0.005; 
-
-  Serial.begin(115200);
-  motor.useMonitoring(Serial);
-
-  motor.init();
-  motor.initFOC();
-
-  // define the motor id
-  command.add('T', doTarget, "target current");
-
-  Serial.println(F("Motor ready."));
-  Serial.println(F("Set the target current using serial terminal:"));
-  _delay(1000);
+  Serial.begin(9600);
 }
 
-
 void loop() {
-  motor.loopFOC();
-  motor.move();
-  command.run();
+  
+  // float read_dc_voltage = analogRead(PIN_DC_VOLTAGE);
+  // Serial.print("dc_voltage : ");
+  // Serial.println(read_dc_voltage);
+
+  // float read_thermistor_mst = analogRead(PIN_PACK_TEMP);
+  // Serial.print("mos_temp : ");
+  // Serial.println(read_thermistor_mst);
+  
+  // float read_thermistor_ext = analogRead(PIN_THERMISTOR);
+  // Serial.print("motor_temp : ");
+  // Serial.println(read_thermistor_ext);
+    
+  // float read_dc_current = analogRead(PIN_CURRENT);
+  // Serial.print("dc_current : ");
+  // Serial.println(read_dc_current);
+
+  // float read_u_current = analogRead(PIN_U_PHASE);
+  // Serial.print("phase_current : ");
+  // Serial.println(read_u_current);
+
+  digitalWrite(GATE_5, HIGH);
+  digitalWrite(GATE_1, HIGH);
+  delay(500);
+
+  digitalWrite(GATE_5, LOW);
+  digitalWrite(GATE_1, LOW);
+  delay(500);
+
 }
